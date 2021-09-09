@@ -1,0 +1,14 @@
+<h1>Homepage</h1>
+<h2>Welcome to the test webpage</h2>
+
+<div>Home page lists all available page in this simple project</div>
+
+<div>
+    <ul>
+        {{range .}}
+            <li><a href="../view/{{.Id}}">{{.Title}}</a></li>
+        {{end}}
+    </ul>
+</div>
+
+<a href="../add"><button>Add New Entry</button></a>
