@@ -2,6 +2,7 @@ package page_handler
 
 import (
 	model "golang_layout/internal/model/page_model"
+	"golang_layout/internal/repo/wiki_db"
 	webpage_lib "golang_layout/internal/usecase/webpage"
 	"net/http"
 	"regexp"
@@ -20,7 +21,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusFound) //shortcut to add new entry
 	}
-	webpage.RenderTemplate(w, "view", p)
+	RenderTemplate(w, "view", p)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, id string) {
@@ -34,7 +35,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, id string) {
 		http.Error(w, "Internal error", http.StatusBadRequest)
 		return
 	}
-	webpage.RenderTemplate(w, "edit", p)
+	RenderTemplate(w, "edit", p)
 
 }
 
@@ -82,12 +83,12 @@ func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	webpage.RenderHome(w, p)
+	RenderHome(w, p)
 }
 
 func addHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p := &model.Page{Title: title}
-	webpage.RenderTemplate(w, "add", p)
+	RenderTemplate(w, "add", p)
 }
 
 var validPath = regexp.MustCompile("^/(edit|view|update)/([0-9]+)$") //regex for crud path
@@ -116,6 +117,10 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func CreateHandlers() {
+	webpage.Wiki = wiki_db.WikiRepo{}
+	webpage.Wiki.Open()
+	webpage.Init()
+	// fmt.Printf(webpage.Wiki.Db)
 	http.HandleFunc("/", makeHandler(homeHandler))
 	http.HandleFunc("/home/", makeHandler(homeHandler))
 	http.HandleFunc("/view/", makeHandler(viewHandler))
@@ -124,4 +129,18 @@ func CreateHandlers() {
 	http.HandleFunc("/insert/", makeHandler(insertHandler))
 	http.HandleFunc("/add/", makeHandler(addHandler))
 
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, p *model.Page) {
+	err := webpage.Templates.ExecuteTemplate(w, tmpl+".html", p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func RenderHome(w http.ResponseWriter, p *[]model.Page) {
+	err := webpage.Templates.ExecuteTemplate(w, "home.html", *p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

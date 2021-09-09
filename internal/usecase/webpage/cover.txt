@@ -1,0 +1,10 @@
+mode: set
+golang_layout/internal/usecase/webpage/webpage.go:15.27,17.2 1 0
+golang_layout/internal/usecase/webpage/webpage.go:19.60,23.16 2 1
+golang_layout/internal/usecase/webpage/webpage.go:27.2,27.18 1 1
+golang_layout/internal/usecase/webpage/webpage.go:23.16,25.3 1 1
+golang_layout/internal/usecase/webpage/webpage.go:30.54,32.16 2 1
+golang_layout/internal/usecase/webpage/webpage.go:35.2,35.20 1 1
+golang_layout/internal/usecase/webpage/webpage.go:32.16,34.3 1 1
+golang_layout/internal/usecase/webpage/webpage.go:37.69,42.2 3 1
+golang_layout/internal/usecase/webpage/webpage.go:44.70,48.2 3 1

@@ -12,22 +12,23 @@ import (
 
 type WikiRepoInterface interface {
 	GetAllTitles() ([]page_model.Page, error)
-	GetById(int64) (page_model.Page, error)
+	GetById(int64) (*page_model.Page, error)
 	InsertPage(page *page_model.Page) (int64, error)
 	UpdatePage(page *page_model.Page) (int64, error)
 	Close()
 	Open()
 }
 
+var db *sql.DB
+
 type WikiRepo struct {
-	db *sql.DB
 }
 
 func (w WikiRepo) Open() {
 
 	// Get a database handle.
 	var err error
-	if w.db == nil { //not initiated
+	if db == nil { //not initiated
 		cfg := mysql.Config{
 			User:                 "root",
 			Passwd:               "root",
@@ -36,24 +37,24 @@ func (w WikiRepo) Open() {
 			DBName:               "wikis",
 			AllowNativePasswords: true,
 		}
-		w.db, err = sql.Open("mysql", cfg.FormatDSN())
+		db, err = sql.Open("mysql", cfg.FormatDSN())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		pingErr := w.db.Ping()
+		pingErr := db.Ping()
 		if pingErr != nil {
 			log.Fatal(pingErr)
 		}
 	}
-	//fmt.Println("Connected!")
+	fmt.Println("Connected!")
 
 }
 
 func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) {
 	w.Open()
 	var pages []page_model.Page
-	rows, err := w.db.Query("SELECT id, title FROM pages")
+	rows, err := db.Query("SELECT id, title FROM pages")
 
 	if err != nil {
 		return nil, fmt.Errorf("error in select operation: %v", err)
@@ -72,23 +73,23 @@ func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) {
 	return pages, err
 }
 
-func (w WikiRepo) GetById(id int64) (page_model.Page, error) {
+func (w WikiRepo) GetById(id int64) (*page_model.Page, error) {
 	w.Open()
 	var page page_model.Page
 
-	row := w.db.QueryRow("SELECT * FROM pages WHERE id = ?", id)
+	row := db.QueryRow("SELECT * FROM pages WHERE id = ?", id)
 	if err := row.Scan(&page.Id, &page.Title, &page.Body); err != nil {
 		if err == sql.ErrNoRows {
-			return page, fmt.Errorf("pageId %d: not found", id)
+			return &page, fmt.Errorf("pageId %d: not found", id)
 		}
-		return page, fmt.Errorf("pageId %d: %v", id, err)
+		return &page, fmt.Errorf("pageId %d: %v", id, err)
 	}
-	return page, nil
+	return &page, nil
 }
 
 func (w WikiRepo) InsertPage(page *page_model.Page) (int64, error) {
 	w.Open()
-	result, err := w.db.Exec("INSERT INTO pages (title, body) VALUES (?, ?)", page.Title, page.Body)
+	result, err := db.Exec("INSERT INTO pages (title, body) VALUES (?, ?)", page.Title, page.Body)
 	if err != nil {
 		return 0, fmt.Errorf("addPage: %v", err)
 	}
@@ -102,7 +103,7 @@ func (w WikiRepo) InsertPage(page *page_model.Page) (int64, error) {
 
 func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) {
 	w.Open()
-	result, err := w.db.Exec("UPDATE pages SET title = ?, body=? WHERE id = ?", page.Title, page.Body, page.Id)
+	result, err := db.Exec("UPDATE pages SET title = ?, body=? WHERE id = ?", page.Title, page.Body, page.Id)
 	if err != nil {
 		return 0, fmt.Errorf("updatePage: %v", err)
 	}
@@ -114,5 +115,5 @@ func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) {
 
 }
 func (w WikiRepo) Close() {
-	w.db.Close()
+	db.Close()
 }
