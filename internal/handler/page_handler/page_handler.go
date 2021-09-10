@@ -1,7 +1,7 @@
 package page_handler
 
 import (
-	model "golang_layout/internal/model/page_model"
+	"golang_layout/internal/model/page_model"
 	"golang_layout/internal/repo/wiki_db"
 	webpage_lib "golang_layout/internal/usecase/webpage"
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-var webpage = webpage_lib.WebPage{}
+var webpage webpage_lib.WebPageInterface = webpage_lib.WebPage{}
 
 func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
 	nId, err := strconv.ParseInt(id, 10, 0)
@@ -19,7 +19,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request, id string) {
 	}
 	p, err := webpage.LoadPage(nId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusFound) //shortcut to add new entry
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 	RenderTemplate(w, "view", p)
 }
@@ -87,7 +88,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request, title string) {
 }
 
 func addHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p := &model.Page{Title: title}
+	p := &page_model.Page{Title: title}
 	RenderTemplate(w, "add", p)
 }
 
@@ -117,8 +118,8 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func CreateHandlers() {
-	webpage.Wiki = wiki_db.WikiRepo{}
-	webpage.Wiki.Open()
+	webpage.AddWiki(wiki_db.WikiRepo{})
+	webpage.Open()
 	webpage.Init()
 	// fmt.Printf(webpage.Wiki.Db)
 	http.HandleFunc("/", makeHandler(homeHandler))
@@ -131,15 +132,15 @@ func CreateHandlers() {
 
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string, p *model.Page) {
-	err := webpage.Templates.ExecuteTemplate(w, tmpl+".html", p)
+func RenderTemplate(w http.ResponseWriter, tmpl string, p *page_model.Page) {
+	err := webpage.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func RenderHome(w http.ResponseWriter, p *[]model.Page) {
-	err := webpage.Templates.ExecuteTemplate(w, "home.html", *p)
+func RenderHome(w http.ResponseWriter, p *[]page_model.Page) {
+	err := webpage.ExecuteTemplate(w, "home.html", *p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -60,7 +60,7 @@ type ArrayAnswer struct {
 
 func TestLoadPage(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		idRet: func(id int64) (*page_model.Page, error) {
 			return &page_model.Page{Id: id, Title: "title_test", Body: "test"}, nil
 		},
@@ -76,7 +76,7 @@ func TestLoadPage(t *testing.T) {
 
 func TestLoadPageId_Failed(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		idRet: func(id int64) (*page_model.Page, error) {
 			return nil, fmt.Errorf("error in select operation")
 		},
@@ -92,7 +92,7 @@ func TestLoadPageId_Failed(t *testing.T) {
 
 func TestLoadHome_Success(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		titleRet: func() ([]page_model.Page, error) {
 			return []page_model.Page{
 				{Id: 1, Title: "a", Body: "aabc"},
@@ -115,7 +115,7 @@ func TestLoadHome_Success(t *testing.T) {
 
 func TestLoadHome_Fail(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		titleRet: func() ([]page_model.Page, error) {
 			return []page_model.Page{}, fmt.Errorf("Error in select operation")
 		},
@@ -136,7 +136,7 @@ func TestLoadHome_Fail(t *testing.T) {
 
 func TestInsert_Success(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		insertRet: func(*page_model.Page) (int64, error) {
 			return 4, nil
 		},
@@ -153,7 +153,7 @@ func TestInsert_Success(t *testing.T) {
 
 func TestInsert_Fail(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		insertRet: func(*page_model.Page) (int64, error) {
 			return 0, fmt.Errorf("addPage error")
 		},
@@ -170,7 +170,7 @@ func TestInsert_Fail(t *testing.T) {
 
 func TestUpdate_Fail(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		updateRet: func(*page_model.Page) (int64, error) {
 			return 0, fmt.Errorf("updatePage error")
 		},
@@ -183,7 +183,7 @@ func TestUpdate_Fail(t *testing.T) {
 
 func TestUpdate_Success(t *testing.T) {
 	web := WebPage{}
-	web.Wiki = WikiRepoMock{
+	wiki = WikiRepoMock{
 		updateRet: func(*page_model.Page) (int64, error) {
 			return 1, nil
 		},
