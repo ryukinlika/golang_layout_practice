@@ -31,7 +31,6 @@ func (web WebPageMock) LoadPage(id int64) (*page_model.Page, error) {
 func (web WebPageMock) LoadHome() (*[]page_model.Page, error) {
 	args := web.Called()
 	return args.Get(0).(*[]page_model.Page), args.Error(1)
-
 }
 func (web WebPageMock) Insert(title string, body string) (int64, error) {
 	args := web.Called(title, body)
@@ -229,4 +228,167 @@ func TestUdpateHandler_DatabaseError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 
+}
+
+func TestInsertHandler_Success(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("Insert", "new_title", "new_body").Return(int64(5), nil)
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+
+	form := url.Values{}
+	form.Add("title", "new_title")
+	form.Add("body", "new_body")
+
+	req, err := http.NewRequest("POST", "/insert/", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	insertHandler(rr, req, "1")
+
+	assert.Equal(t, http.StatusFound, rr.Code)
+
+}
+
+func TestInsertHandler_DatabaseError(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("Insert", "new_title", "new_body").Return(int64(0), fmt.Errorf("addPage: Error"))
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+
+	form := url.Values{}
+	form.Add("title", "new_title")
+	form.Add("body", "new_body")
+
+	req, err := http.NewRequest("POST", "/insert/", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	insertHandler(rr, req, "1")
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+
+}
+func TestInsertHandler_InvalidForm(t *testing.T) {
+	rr := httptest.NewRecorder()
+
+	form := url.Values{}
+	form.Add("title", "")
+	form.Add("body", "")
+
+	req, err := http.NewRequest("POST", "/insert/", strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	insertHandler(rr, req, "1")
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+}
+
+func TestHomeHandler_Success(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("LoadHome").Return(&[]page_model.Page{{Id: 1, Title: "Title", Body: ""}}, nil)
+	webMock.On("ExecuteTemplate", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/home/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	homeHandler(rr, req, "home")
+
+	webMock.AssertExpectations(t)
+
+}
+
+func TestHomeHandler_DatabaseError(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("LoadHome").Return(&[]page_model.Page{}, fmt.Errorf("row error: error"))
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/home/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	homeHandler(rr, req, "home")
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+
+}
+
+func TestAddHandler(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("ExecuteTemplate", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/add/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	addHandler(rr, req, "add")
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAddHandler_TemplateFails(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("ExecuteTemplate", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("template error"))
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/add/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	addHandler(rr, req, "add")
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+}
+
+func TestHomeHandler_TemplateFails(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("LoadHome").Return(&[]page_model.Page{{Id: 1, Title: "Title", Body: ""}}, nil)
+	webMock.On("ExecuteTemplate", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("template error"))
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/add/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	homeHandler(rr, req, "add")
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+}
+
+func TestHandlerAssignment_Home(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("LoadHome").Return(&[]page_model.Page{{Id: 1, Title: "Title", Body: ""}}, nil)
+	webMock.On("ExecuteTemplate", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/home/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	handler := makeHandler(homeHandler)
+	handler.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
 }

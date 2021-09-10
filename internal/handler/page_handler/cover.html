@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">golang_layout/internal/handler/page_handler/page_handler.go (43.8%)</option>
+				<option value="file0">golang_layout/internal/handler/page_handler/page_handler.go (81.2%)</option>
 				
 				</select>
 			</div>
@@ -132,33 +132,33 @@ func updateHandler(w http.ResponseWriter, r *http.Request, id string) <span clas
         <span class="cov8" title="1">http.Redirect(w, r, "/view/"+id, http.StatusFound)</span>
 }
 
-func insertHandler(w http.ResponseWriter, r *http.Request, placeholder string) <span class="cov0" title="0">{
+func insertHandler(w http.ResponseWriter, r *http.Request, placeholder string) <span class="cov8" title="1">{
         r.ParseForm()
         title := r.FormValue("title")
         body := r.FormValue("body")
-        if len(body) == 0 || len(title) == 0 </span><span class="cov0" title="0">{
+        if len(body) == 0 || len(title) == 0 </span><span class="cov8" title="1">{
                 http.Error(w, "Content must not be empty", http.StatusBadRequest)
                 return
         }</span>
-        <span class="cov0" title="0">id, err := webpage.Insert(title, body)
+        <span class="cov8" title="1">id, err := webpage.Insert(title, body)
         strId := strconv.FormatInt(id, 10)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }</span>
-        <span class="cov0" title="0">http.Redirect(w, r, "/view/"+strId, http.StatusFound)</span>
+        <span class="cov8" title="1">http.Redirect(w, r, "/view/"+strId, http.StatusFound)</span>
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov0" title="0">{
+func homeHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov8" title="1">{
         p, err := webpage.LoadHome()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 http.Error(w, err.Error(), http.StatusInternalServerError)
                 return
         }</span>
-        <span class="cov0" title="0">RenderHome(w, p)</span>
+        <span class="cov8" title="1">RenderHome(w, p)</span>
 }
 
-func addHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov0" title="0">{
+func addHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov8" title="1">{
         p := &amp;page_model.Page{Title: title}
         RenderTemplate(w, "add", p)
 }</span>
@@ -167,11 +167,11 @@ var validPath = regexp.MustCompile("^/(edit|view|update)/([0-9]+)$") //regex for
 
 var homePath = regexp.MustCompile("^/(home|add|insert)/$") //regex for home and add path
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc <span class="cov0" title="0">{
-        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
                 m := validPath.FindStringSubmatch(r.URL.Path)
                 //fmt.Println(r.URL.Path)
-                if m == nil </span><span class="cov0" title="0">{
+                if m == nil </span><span class="cov8" title="1">{
                         n := homePath.FindStringSubmatch(r.URL.Path)
                         if n == nil </span><span class="cov0" title="0">{
                                 if r.URL.Path == "/" </span><span class="cov0" title="0">{
@@ -181,7 +181,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
                                 }</span>
                                 <span class="cov0" title="0">return</span>
                         }
-                        <span class="cov0" title="0">fn(w, r, "Title")
+                        <span class="cov8" title="1">fn(w, r, "Title")
                         return</span>
                 }
                 <span class="cov0" title="0">fn(w, r, m[2])</span>
@@ -205,14 +205,14 @@ func CreateHandlers() <span class="cov0" title="0">{
 
 func RenderTemplate(w http.ResponseWriter, tmpl string, p *page_model.Page) <span class="cov8" title="1">{
         err := webpage.ExecuteTemplate(w, tmpl+".html", p)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 http.Error(w, err.Error(), http.StatusInternalServerError)
         }</span>
 }
 
-func RenderHome(w http.ResponseWriter, p *[]page_model.Page) <span class="cov0" title="0">{
+func RenderHome(w http.ResponseWriter, p *[]page_model.Page) <span class="cov8" title="1">{
         err := webpage.ExecuteTemplate(w, "home.html", *p)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 http.Error(w, err.Error(), http.StatusInternalServerError)
         }</span>
 }
