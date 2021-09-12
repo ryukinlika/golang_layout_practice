@@ -3,7 +3,6 @@ package wiki_db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/go-sql-driver/mysql"
 
@@ -16,16 +15,48 @@ type WikiRepoInterface interface {
 	InsertPage(page *page_model.Page) (int64, error)
 	UpdatePage(page *page_model.Page) (int64, error)
 	Close()
-	Open()
+	Open() error
 }
 
+type DBInterface interface {
+	Ping() error
+	Query(string, ...interface{}) (*sql.Rows, error)
+	QueryRow(string, ...interface{}) *sql.Row
+	Exec(string, ...interface{}) (sql.Result, error)
+	Close() error
+}
+
+type SQLInterface interface {
+	// Open(string, string) (DBInterface, error)
+	Open(string, string) (*sql.DB, error)
+}
+
+// var db DBInterface
 var db *sql.DB
+var sqlObject SQLInterface
+
+type SQLStruct struct {
+	openRet func(string, string) (*sql.DB, error)
+}
+
+// func (sql SQLStruct) Open(s1 string, s2 string) (DBInterface, error) {
+// 	db, err := sql.openRet(s1, s2)
+// 	return DBInterface(db), err
+// }
+func (sql SQLStruct) Open(s1 string, s2 string) (*sql.DB, error) {
+	db, err := sql.openRet(s1, s2)
+	return db, err
+}
 
 type WikiRepo struct {
 }
 
-func (w WikiRepo) Open() {
-
+func (w WikiRepo) Open() error {
+	if sqlObject == nil {
+		sqlObject = SQLStruct{
+			openRet: sql.Open,
+		}
+	}
 	// Get a database handle.
 	var err error
 	if db == nil { //not initiated
@@ -37,18 +68,18 @@ func (w WikiRepo) Open() {
 			DBName:               "wikis",
 			AllowNativePasswords: true,
 		}
-		db, err = sql.Open("mysql", cfg.FormatDSN())
+		db, err = sqlObject.Open("mysql", cfg.FormatDSN())
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		pingErr := db.Ping()
 		if pingErr != nil {
-			log.Fatal(pingErr)
+			return pingErr
 		}
 	}
 	fmt.Println("Connected!")
-
+	return nil
 }
 
 func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) {
@@ -62,7 +93,7 @@ func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) {
 	for rows.Next() {
 		var p page_model.Page
 		if err := rows.Scan(&p.Id, &p.Title); err != nil {
-			return nil, fmt.Errorf("error in row scan: %v", err)
+			return nil, fmt.Errorf("error in row scan")
 		}
 		pages = append(pages, p)
 	}
@@ -91,11 +122,11 @@ func (w WikiRepo) InsertPage(page *page_model.Page) (int64, error) {
 	w.Open()
 	result, err := db.Exec("INSERT INTO pages (title, body) VALUES (?, ?)", page.Title, page.Body)
 	if err != nil {
-		return 0, fmt.Errorf("addPage: %v", err)
+		return 0, fmt.Errorf("error insert")
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("addPage: %v", err)
+		return 0, fmt.Errorf("error insert")
 	}
 	return id, nil
 
@@ -105,11 +136,11 @@ func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) {
 	w.Open()
 	result, err := db.Exec("UPDATE pages SET title = ?, body=? WHERE id = ?", page.Title, page.Body, page.Id)
 	if err != nil {
-		return 0, fmt.Errorf("updatePage: %v", err)
+		return 0, fmt.Errorf("error update")
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("updatePage: %v", err)
+		return 0, fmt.Errorf("error update")
 	}
 	return id, nil
 

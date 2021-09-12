@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>wiki_db: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">golang_layout/internal/repo/wiki_db/wiki_db.go (83.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package wiki_db
+
+import (
+        "database/sql"
+        "fmt"
+
+        "github.com/go-sql-driver/mysql"
+
+        "golang_layout/internal/model/page_model"
+)
+
+type WikiRepoInterface interface {
+        GetAllTitles() ([]page_model.Page, error)
+        GetById(int64) (*page_model.Page, error)
+        InsertPage(page *page_model.Page) (int64, error)
+        UpdatePage(page *page_model.Page) (int64, error)
+        Close()
+        Open() error
+}
+
+type DBInterface interface {
+        Ping() error
+        Query(string, ...interface{}) (*sql.Rows, error)
+        QueryRow(string, ...interface{}) *sql.Row
+        Exec(string, ...interface{}) (sql.Result, error)
+        Close() error
+}
+
+type SQLInterface interface {
+        // Open(string, string) (DBInterface, error)
+        Open(string, string) (*sql.DB, error)
+}
+
+// var db DBInterface
+var db *sql.DB
+var sqlObject SQLInterface
+
+type SQLStruct struct {
+        openRet func(string, string) (*sql.DB, error)
+}
+
+// func (sql SQLStruct) Open(s1 string, s2 string) (DBInterface, error) {
+//         db, err := sql.openRet(s1, s2)
+//         return DBInterface(db), err
+// }
+func (sql SQLStruct) Open(s1 string, s2 string) (*sql.DB, error) <span class="cov0" title="0">{
+        db, err := sql.openRet(s1, s2)
+        return db, err
+}</span>
+
+type WikiRepo struct {
+}
+
+func (w WikiRepo) Open() error <span class="cov8" title="1">{
+        if sqlObject == nil </span><span class="cov0" title="0">{
+                sqlObject = SQLStruct{
+                        openRet: sql.Open,
+                }
+        }</span>
+        // Get a database handle.
+        <span class="cov8" title="1">var err error
+        if db == nil </span><span class="cov8" title="1">{ //not initiated
+                cfg := mysql.Config{
+                        User:                 "root",
+                        Passwd:               "root",
+                        Net:                  "tcp",
+                        Addr:                 "127.0.0.1:3306",
+                        DBName:               "wikis",
+                        AllowNativePasswords: true,
+                }
+                db, err = sqlObject.Open("mysql", cfg.FormatDSN())
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">pingErr := db.Ping()
+                if pingErr != nil </span><span class="cov0" title="0">{
+                        return pingErr
+                }</span>
+        }
+        <span class="cov8" title="1">fmt.Println("Connected!")
+        return nil</span>
+}
+
+func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) <span class="cov8" title="1">{
+        w.Open()
+        var pages []page_model.Page
+        rows, err := db.Query("SELECT id, title FROM pages")
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("error in select operation: %v", err)
+        }</span>
+        <span class="cov8" title="1">for rows.Next() </span><span class="cov8" title="1">{
+                var p page_model.Page
+                if err := rows.Scan(&amp;p.Id, &amp;p.Title); err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("error in row scan")
+                }</span>
+                <span class="cov8" title="1">pages = append(pages, p)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("row error: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">return pages, err</span>
+}
+
+func (w WikiRepo) GetById(id int64) (*page_model.Page, error) <span class="cov8" title="1">{
+        w.Open()
+        var page page_model.Page
+
+        row := db.QueryRow("SELECT * FROM pages WHERE id = ?", id)
+        if err := row.Scan(&amp;page.Id, &amp;page.Title, &amp;page.Body); err != nil </span><span class="cov8" title="1">{
+                if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                        return &amp;page, fmt.Errorf("pageId %d: not found", id)
+                }</span>
+                <span class="cov0" title="0">return &amp;page, fmt.Errorf("pageId %d: %v", id, err)</span>
+        }
+        <span class="cov8" title="1">return &amp;page, nil</span>
+}
+
+func (w WikiRepo) InsertPage(page *page_model.Page) (int64, error) <span class="cov8" title="1">{
+        w.Open()
+        result, err := db.Exec("INSERT INTO pages (title, body) VALUES (?, ?)", page.Title, page.Body)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("error insert")
+        }</span>
+        <span class="cov8" title="1">id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error insert")
+        }</span>
+        <span class="cov8" title="1">return id, nil</span>
+
+}
+
+func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) <span class="cov8" title="1">{
+        w.Open()
+        result, err := db.Exec("UPDATE pages SET title = ?, body=? WHERE id = ?", page.Title, page.Body, page.Id)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error update")
+        }</span>
+        <span class="cov8" title="1">id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error update")
+        }</span>
+        <span class="cov8" title="1">return id, nil</span>
+
+}
+func (w WikiRepo) Close() <span class="cov0" title="0">{
+        db.Close()
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

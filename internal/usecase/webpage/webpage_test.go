@@ -38,7 +38,8 @@ func (w WikiRepoMock) InsertPage(p *page_model.Page) (int64, error) {
 func (w WikiRepoMock) UpdatePage(p *page_model.Page) (int64, error) {
 	return w.updateRet(p)
 }
-func (w WikiRepoMock) Open() {
+func (w WikiRepoMock) Open() error {
+	return nil
 }
 func (w WikiRepoMock) Close() {
 }
