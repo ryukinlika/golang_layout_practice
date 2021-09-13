@@ -42,6 +42,11 @@ func (web WebPageMock) Update(id int64, title string, body string) error {
 	return args.Error(0)
 }
 
+func (web WebPageMock) Delete(id int64) error {
+	args := web.Called(id)
+	return args.Error(0)
+}
+
 func (web WebPageMock) AddWiki(w wiki_db.WikiRepo) {
 
 }

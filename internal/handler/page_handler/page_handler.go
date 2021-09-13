@@ -92,7 +92,21 @@ func addHandler(w http.ResponseWriter, r *http.Request, title string) {
 	RenderTemplate(w, "add", p)
 }
 
-var validPath = regexp.MustCompile("^/(edit|view|update)/([0-9]+)$") //regex for crud path
+func deleteHandler(w http.ResponseWriter, r *http.Request, id string) {
+	nId, err := strconv.ParseInt(id, 10, 0)
+	if err != nil {
+		http.Error(w, "Id must be int", http.StatusBadRequest)
+		return
+	}
+	err = webpage.Delete(nId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/home/", http.StatusFound)
+}
+
+var validPath = regexp.MustCompile("^/(edit|view|update|delete)/([0-9]+)$") //regex for crud path
 
 var homePath = regexp.MustCompile("^/(home|add|insert)/$") //regex for home and add path
 
@@ -129,6 +143,7 @@ func CreateHandlers() {
 	http.HandleFunc("/update/", makeHandler(updateHandler))
 	http.HandleFunc("/insert/", makeHandler(insertHandler))
 	http.HandleFunc("/add/", makeHandler(addHandler))
+	http.HandleFunc("/delete/", makeHandler(deleteHandler))
 
 }
 

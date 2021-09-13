@@ -14,6 +14,7 @@ type WikiRepoInterface interface {
 	GetById(int64) (*page_model.Page, error)
 	InsertPage(page *page_model.Page) (int64, error)
 	UpdatePage(page *page_model.Page) (int64, error)
+	DeletePage(int64) (int64, error)
 	Close()
 	Open() error
 }
@@ -145,6 +146,20 @@ func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) {
 	return id, nil
 
 }
+func (w WikiRepo) DeletePage(id int64) (int64, error) {
+	w.Open()
+	result, err := db.Exec("DELETE from pages where id = ?", id)
+	if err != nil {
+		return 0, fmt.Errorf("error delete")
+	}
+	processed_id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("error update")
+	}
+	return processed_id, nil
+
+}
+
 func (w WikiRepo) Close() {
 	db.Close()
 }

@@ -291,19 +291,35 @@ func TestDatabaseUpdatePage_ErrorInsert(t *testing.T) {
 
 }
 
-// func TestDatabaseNoPing(t *testing.T) {
-// 	db = nil
-// 	wiki := WikiRepo{}
+func TestDatabaseDeletePage_Success(t *testing.T) {
+	wiki := WikiRepo{}
+	db_mock, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db_mock.Close()
 
-// 	sqlObject = SQLInterfaceMock{
-// 		openRet: func() (*sql.DB, error) {
-// 			return DBInterfaceMock{pingRet: func() error { return fmt.Errorf("dead") }}, nil
-// 		},
-// 	}
-// 	expected_err := fmt.Errorf("dead")
+	mock.ExpectExec("DELETE from pages").WithArgs(int64(1)).WillReturnResult(sqlmock.NewResult(1, 1))
 
-// 	err := wiki.Open()
+	db = db_mock
+	_, err = wiki.DeletePage(int64(1))
 
-// 	assert.Equal(t, expected_err, err, "No Ping")
+	assert.Equal(t, nil, err)
 
-// }
+}
+func TestDatabaseDeletePage_ErrorInsert(t *testing.T) {
+	wiki := WikiRepo{}
+	db_mock, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db_mock.Close()
+
+	mock.ExpectExec("DELETE from pages").WithArgs(int64(1)).WillReturnError(fmt.Errorf("error delete"))
+
+	db = db_mock
+	_, err = wiki.DeletePage(int64(1))
+
+	assert.Equal(t, fmt.Errorf("error delete"), err)
+
+}

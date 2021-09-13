@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>page_handler: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">golang_layout/internal/handler/page_handler/page_handler.go (72.2%)</option>
+				
+				<option value="file1">golang_layout/internal/repo/wiki_db/wiki_db.go (83.6%)</option>
+				
+				<option value="file2">golang_layout/internal/usecase/webpage/webpage.go (70.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package page_handler
+
+import (
+        "golang_layout/internal/model/page_model"
+        "golang_layout/internal/repo/wiki_db"
+        webpage_lib "golang_layout/internal/usecase/webpage"
+        "net/http"
+        "regexp"
+        "strconv"
+)
+
+var webpage webpage_lib.WebPageInterface = webpage_lib.WebPage{}
+
+func viewHandler(w http.ResponseWriter, r *http.Request, id string) <span class="cov8" title="1">{
+        nId, err := strconv.ParseInt(id, 10, 0)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "Id must be int", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">p, err := webpage.LoadPage(nId)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusNotFound)
+                return
+        }</span>
+        <span class="cov8" title="1">RenderTemplate(w, "view", p)</span>
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request, id string) <span class="cov8" title="1">{
+        nId, err := strconv.ParseInt(id, 10, 0)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "Id must be int", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">p, err := webpage.LoadPage(nId)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "Internal error", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">RenderTemplate(w, "edit", p)</span>
+
+}
+
+func updateHandler(w http.ResponseWriter, r *http.Request, id string) <span class="cov8" title="1">{ //verifies data
+        nId, err := strconv.ParseInt(id, 10, 0)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, "Id must be int", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">r.ParseForm()
+        title := r.FormValue("title")
+        body := r.FormValue("body")
+        if len(body) == 0 || len(title) == 0 </span><span class="cov8" title="1">{
+                http.Error(w, "Content must not be empty", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">err = webpage.Update(nId, title, body)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov8" title="1">http.Redirect(w, r, "/view/"+id, http.StatusFound)</span>
+}
+
+func insertHandler(w http.ResponseWriter, r *http.Request, placeholder string) <span class="cov8" title="1">{
+        r.ParseForm()
+        title := r.FormValue("title")
+        body := r.FormValue("body")
+        if len(body) == 0 || len(title) == 0 </span><span class="cov8" title="1">{
+                http.Error(w, "Content must not be empty", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov8" title="1">id, err := webpage.Insert(title, body)
+        strId := strconv.FormatInt(id, 10)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov8" title="1">http.Redirect(w, r, "/view/"+strId, http.StatusFound)</span>
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov8" title="1">{
+        p, err := webpage.LoadHome()
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov8" title="1">RenderHome(w, p)</span>
+}
+
+func addHandler(w http.ResponseWriter, r *http.Request, title string) <span class="cov8" title="1">{
+        p := &amp;page_model.Page{Title: title}
+        RenderTemplate(w, "add", p)
+}</span>
+
+func deleteHandler(w http.ResponseWriter, r *http.Request, id string) <span class="cov0" title="0">{
+        nId, err := strconv.ParseInt(id, 10, 0)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, "Id must be int", http.StatusBadRequest)
+                return
+        }</span>
+        <span class="cov0" title="0">err = webpage.Delete(nId)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+        }</span>
+        <span class="cov0" title="0">http.Redirect(w, r, "/home/", http.StatusFound)</span>
+}
+
+var validPath = regexp.MustCompile("^/(edit|view|update|delete)/([0-9]+)$") //regex for crud path
+
+var homePath = regexp.MustCompile("^/(home|add|insert)/$") //regex for home and add path
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc <span class="cov8" title="1">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                m := validPath.FindStringSubmatch(r.URL.Path)
+                //fmt.Println(r.URL.Path)
+                if m == nil </span><span class="cov8" title="1">{
+                        n := homePath.FindStringSubmatch(r.URL.Path)
+                        if n == nil </span><span class="cov0" title="0">{
+                                if r.URL.Path == "/" </span><span class="cov0" title="0">{
+                                        http.Redirect(w, r, "/home", http.StatusFound) //redirect "/" to "/home"
+                                }</span> else<span class="cov0" title="0"> {
+                                        http.NotFound(w, r)
+                                }</span>
+                                <span class="cov0" title="0">return</span>
+                        }
+                        <span class="cov8" title="1">fn(w, r, "Title")
+                        return</span>
+                }
+                <span class="cov0" title="0">fn(w, r, m[2])</span>
+        }
+}
+
+func CreateHandlers() <span class="cov0" title="0">{
+        webpage.AddWiki(wiki_db.WikiRepo{})
+        webpage.Open()
+        webpage.Init()
+        // fmt.Printf(webpage.Wiki.Db)
+        http.HandleFunc("/", makeHandler(homeHandler))
+        http.HandleFunc("/home/", makeHandler(homeHandler))
+        http.HandleFunc("/view/", makeHandler(viewHandler))
+        http.HandleFunc("/edit/", makeHandler(editHandler))
+        http.HandleFunc("/update/", makeHandler(updateHandler))
+        http.HandleFunc("/insert/", makeHandler(insertHandler))
+        http.HandleFunc("/add/", makeHandler(addHandler))
+        http.HandleFunc("/delete/", makeHandler(deleteHandler))
+
+}</span>
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, p *page_model.Page) <span class="cov8" title="1">{
+        err := webpage.ExecuteTemplate(w, tmpl+".html", p)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+        }</span>
+}
+
+func RenderHome(w http.ResponseWriter, p *[]page_model.Page) <span class="cov8" title="1">{
+        err := webpage.ExecuteTemplate(w, "home.html", *p)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package wiki_db
+
+import (
+        "database/sql"
+        "fmt"
+
+        "github.com/go-sql-driver/mysql"
+
+        "golang_layout/internal/model/page_model"
+)
+
+type WikiRepoInterface interface {
+        GetAllTitles() ([]page_model.Page, error)
+        GetById(int64) (*page_model.Page, error)
+        InsertPage(page *page_model.Page) (int64, error)
+        UpdatePage(page *page_model.Page) (int64, error)
+        DeletePage(int64) (int64, error)
+        Close()
+        Open() error
+}
+
+type DBInterface interface {
+        Ping() error
+        Query(string, ...interface{}) (*sql.Rows, error)
+        QueryRow(string, ...interface{}) *sql.Row
+        Exec(string, ...interface{}) (sql.Result, error)
+        Close() error
+}
+
+type SQLInterface interface {
+        // Open(string, string) (DBInterface, error)
+        Open(string, string) (*sql.DB, error)
+}
+
+// var db DBInterface
+var db *sql.DB
+var sqlObject SQLInterface
+
+type SQLStruct struct {
+        openRet func(string, string) (*sql.DB, error)
+}
+
+// func (sql SQLStruct) Open(s1 string, s2 string) (DBInterface, error) {
+//         db, err := sql.openRet(s1, s2)
+//         return DBInterface(db), err
+// }
+func (sql SQLStruct) Open(s1 string, s2 string) (*sql.DB, error) <span class="cov0" title="0">{
+        db, err := sql.openRet(s1, s2)
+        return db, err
+}</span>
+
+type WikiRepo struct {
+}
+
+func (w WikiRepo) Open() error <span class="cov8" title="1">{
+        if sqlObject == nil </span><span class="cov0" title="0">{
+                sqlObject = SQLStruct{
+                        openRet: sql.Open,
+                }
+        }</span>
+        // Get a database handle.
+        <span class="cov8" title="1">var err error
+        if db == nil </span><span class="cov8" title="1">{ //not initiated
+                cfg := mysql.Config{
+                        User:                 "root",
+                        Passwd:               "root",
+                        Net:                  "tcp",
+                        Addr:                 "127.0.0.1:3306",
+                        DBName:               "wikis",
+                        AllowNativePasswords: true,
+                }
+                db, err = sqlObject.Open("mysql", cfg.FormatDSN())
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">pingErr := db.Ping()
+                if pingErr != nil </span><span class="cov0" title="0">{
+                        return pingErr
+                }</span>
+        }
+        <span class="cov8" title="1">fmt.Println("Connected!")
+        return nil</span>
+}
+
+func (w WikiRepo) GetAllTitles() ([]page_model.Page, error) <span class="cov8" title="1">{
+        w.Open()
+        var pages []page_model.Page
+        rows, err := db.Query("SELECT id, title FROM pages")
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("error in select operation: %v", err)
+        }</span>
+        <span class="cov8" title="1">for rows.Next() </span><span class="cov8" title="1">{
+                var p page_model.Page
+                if err := rows.Scan(&amp;p.Id, &amp;p.Title); err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("error in row scan")
+                }</span>
+                <span class="cov8" title="1">pages = append(pages, p)</span>
+        }
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("row error: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">return pages, err</span>
+}
+
+func (w WikiRepo) GetById(id int64) (*page_model.Page, error) <span class="cov8" title="1">{
+        w.Open()
+        var page page_model.Page
+
+        row := db.QueryRow("SELECT * FROM pages WHERE id = ?", id)
+        if err := row.Scan(&amp;page.Id, &amp;page.Title, &amp;page.Body); err != nil </span><span class="cov8" title="1">{
+                if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                        return &amp;page, fmt.Errorf("pageId %d: not found", id)
+                }</span>
+                <span class="cov0" title="0">return &amp;page, fmt.Errorf("pageId %d: %v", id, err)</span>
+        }
+        <span class="cov8" title="1">return &amp;page, nil</span>
+}
+
+func (w WikiRepo) InsertPage(page *page_model.Page) (int64, error) <span class="cov8" title="1">{
+        w.Open()
+        result, err := db.Exec("INSERT INTO pages (title, body) VALUES (?, ?)", page.Title, page.Body)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("error insert")
+        }</span>
+        <span class="cov8" title="1">id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error insert")
+        }</span>
+        <span class="cov8" title="1">return id, nil</span>
+
+}
+
+func (w WikiRepo) UpdatePage(page *page_model.Page) (int64, error) <span class="cov8" title="1">{
+        w.Open()
+        result, err := db.Exec("UPDATE pages SET title = ?, body=? WHERE id = ?", page.Title, page.Body, page.Id)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error update")
+        }</span>
+        <span class="cov8" title="1">id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error update")
+        }</span>
+        <span class="cov8" title="1">return id, nil</span>
+
+}
+func (w WikiRepo) DeletePage(id int64) (int64, error) <span class="cov8" title="1">{
+        w.Open()
+        result, err := db.Exec("DELETE from pages where id = ?", id)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("error delete")
+        }</span>
+        <span class="cov8" title="1">processed_id, err := result.LastInsertId()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, fmt.Errorf("error update")
+        }</span>
+        <span class="cov8" title="1">return processed_id, nil</span>
+
+}
+
+func (w WikiRepo) Close() <span class="cov0" title="0">{
+        db.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package webpage
+
+import (
+        "golang_layout/internal/model/page_model"
+        "golang_layout/internal/repo/wiki_db"
+        "html/template"
+        "io"
+)
+
+var wiki wiki_db.WikiRepoInterface
+var templates *template.Template
+
+type WebPage struct {
+        // Wiki      wiki_db.WikiRepoInterface
+        // Templates *template.Template
+}
+
+type WebPageInterface interface {
+        Init()
+        LoadPage(int64) (*page_model.Page, error)
+        LoadHome() (*[]page_model.Page, error)
+        Insert(string, string) (int64, error)
+        Update(int64, string, string) error
+        Delete(int64) error
+        AddWiki(wiki_db.WikiRepo)
+        Open()
+        ExecuteTemplate(io.Writer, string, interface{}) error
+}
+
+func (web WebPage) Init() <span class="cov0" title="0">{
+        templates = template.Must(template.ParseFiles(page_model.Template_lists...))
+}</span>
+
+func (web WebPage) LoadPage(id int64) (*page_model.Page, error) <span class="cov8" title="1">{
+        //call db function
+        page, err := wiki.GetById(id)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return page, nil</span>
+}
+
+func (web WebPage) LoadHome() (*[]page_model.Page, error) <span class="cov8" title="1">{
+        pages, err := wiki.GetAllTitles()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return &amp;pages, err</span>
+}
+func (web WebPage) Insert(title string, body string) (int64, error) <span class="cov8" title="1">{
+        page := &amp;page_model.Page{Title: title, Body: body}
+        id, err := wiki.InsertPage(page)
+
+        return id, err
+}</span>
+
+func (web WebPage) Update(id int64, title string, body string) error <span class="cov8" title="1">{
+        page := &amp;page_model.Page{Id: id, Title: title, Body: body}
+        _, err := wiki.UpdatePage(page)
+        return err
+}</span>
+
+func (web WebPage) Delete(id int64) error <span class="cov0" title="0">{
+        _, err := wiki.DeletePage(id)
+        return err
+}</span>
+
+func (web WebPage) AddWiki(w wiki_db.WikiRepo) <span class="cov0" title="0">{
+        wiki = w
+}</span>
+
+func (web WebPage) Open() <span class="cov0" title="0">{
+        wiki.Open()
+}</span>
+
+func (web WebPage) ExecuteTemplate(w io.Writer, tmpl string, p interface{}) error <span class="cov0" title="0">{
+        return templates.ExecuteTemplate(w, tmpl, p)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -24,6 +24,7 @@ type WikiRepoMock struct {
 	idRet     func(int64) (*page_model.Page, error)
 	insertRet func(*page_model.Page) (int64, error)
 	updateRet func(*page_model.Page) (int64, error)
+	deleteRet func(int64) (int64, error)
 }
 
 func (w WikiRepoMock) GetAllTitles() ([]page_model.Page, error) {
@@ -37,6 +38,9 @@ func (w WikiRepoMock) InsertPage(p *page_model.Page) (int64, error) {
 }
 func (w WikiRepoMock) UpdatePage(p *page_model.Page) (int64, error) {
 	return w.updateRet(p)
+}
+func (w WikiRepoMock) DeletePage(id int64) (int64, error) {
+	return w.deleteRet(id)
 }
 func (w WikiRepoMock) Open() error {
 	return nil

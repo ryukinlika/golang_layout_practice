@@ -1,10 +1,13 @@
 mode: set
-golang_layout/internal/usecase/webpage/webpage.go:15.27,17.2 1 0
-golang_layout/internal/usecase/webpage/webpage.go:19.60,23.16 2 1
-golang_layout/internal/usecase/webpage/webpage.go:27.2,27.18 1 1
-golang_layout/internal/usecase/webpage/webpage.go:23.16,25.3 1 1
-golang_layout/internal/usecase/webpage/webpage.go:30.54,32.16 2 1
-golang_layout/internal/usecase/webpage/webpage.go:35.2,35.20 1 1
-golang_layout/internal/usecase/webpage/webpage.go:32.16,34.3 1 1
-golang_layout/internal/usecase/webpage/webpage.go:37.69,42.2 3 1
-golang_layout/internal/usecase/webpage/webpage.go:44.70,48.2 3 1
+golang_layout/internal/usecase/webpage/webpage.go:29.27,31.2 1 0
+golang_layout/internal/usecase/webpage/webpage.go:33.65,37.16 2 1
+golang_layout/internal/usecase/webpage/webpage.go:41.2,41.18 1 1
+golang_layout/internal/usecase/webpage/webpage.go:37.16,39.3 1 1
+golang_layout/internal/usecase/webpage/webpage.go:44.59,46.16 2 1
+golang_layout/internal/usecase/webpage/webpage.go:49.2,49.20 1 1
+golang_layout/internal/usecase/webpage/webpage.go:46.16,48.3 1 1
+golang_layout/internal/usecase/webpage/webpage.go:51.69,56.2 3 1
+golang_layout/internal/usecase/webpage/webpage.go:58.70,62.2 3 1
+golang_layout/internal/usecase/webpage/webpage.go:64.48,66.2 1 0
+golang_layout/internal/usecase/webpage/webpage.go:68.27,70.2 1 0
+golang_layout/internal/usecase/webpage/webpage.go:72.83,74.2 1 0

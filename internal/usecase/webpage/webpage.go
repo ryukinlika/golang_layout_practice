@@ -21,6 +21,7 @@ type WebPageInterface interface {
 	LoadHome() (*[]page_model.Page, error)
 	Insert(string, string) (int64, error)
 	Update(int64, string, string) error
+	Delete(int64) error
 	AddWiki(wiki_db.WikiRepo)
 	Open()
 	ExecuteTemplate(io.Writer, string, interface{}) error
@@ -58,6 +59,11 @@ func (web WebPage) Insert(title string, body string) (int64, error) {
 func (web WebPage) Update(id int64, title string, body string) error {
 	page := &page_model.Page{Id: id, Title: title, Body: body}
 	_, err := wiki.UpdatePage(page)
+	return err
+}
+
+func (web WebPage) Delete(id int64) error {
+	_, err := wiki.DeletePage(id)
 	return err
 }
 
