@@ -34,6 +34,7 @@ func (web WebPage) Init() {
 func (web WebPage) LoadPage(id int64) (*page_model.Page, error) {
 	//call db function
 	page, err := wiki.GetById(id)
+	//proses data
 
 	if err != nil {
 		return nil, err

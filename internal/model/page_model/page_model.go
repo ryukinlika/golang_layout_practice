@@ -12,3 +12,5 @@ var Template_lists = []string{
 	"web/template/view.html",
 	"web/template/add.html",
 }
+
+//constants

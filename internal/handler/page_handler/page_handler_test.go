@@ -113,7 +113,7 @@ func TestEditHandler_Success(t *testing.T) {
 	webpage = webMock
 
 	rr := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/ediit/1", nil)
+	req, err := http.NewRequest("GET", "/edit/1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,4 +396,50 @@ func TestHandlerAssignment_Home(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestDeleteHandler_Success(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("Delete", int64(1)).Return(nil)
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/delete/1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deleteHandler(rr, req, "1")
+
+	webMock.AssertExpectations(t)
+
+}
+
+func TestDeleteHandler_InvalidInput(t *testing.T) {
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/delete/1abc", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deleteHandler(rr, req, "1abc")
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+}
+
+func TestDeleteHandler_NotFound(t *testing.T) {
+	webMock := WebPageMock{}
+	webMock.On("Delete", int64(99)).Return(fmt.Errorf("pageId 99: not found"))
+	webpage = webMock
+
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/delete/99", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deleteHandler(rr, req, "99")
+
+	webMock.AssertExpectations(t)
 }

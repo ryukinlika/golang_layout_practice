@@ -135,7 +135,6 @@ func CreateHandlers() {
 	webpage.AddWiki(wiki_db.WikiRepo{})
 	webpage.Open()
 	webpage.Init()
-	// fmt.Printf(webpage.Wiki.Db)
 	http.HandleFunc("/", makeHandler(homeHandler))
 	http.HandleFunc("/home/", makeHandler(homeHandler))
 	http.HandleFunc("/view/", makeHandler(viewHandler))
